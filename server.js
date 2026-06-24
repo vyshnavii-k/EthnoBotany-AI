@@ -12,7 +12,6 @@ app.use(express.static(path.join(__dirname)));
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// Adjusted endpoint to match frontend fetch route verbatim
 app.post('/api/ai/analyze-plant', async (req, res) => {
     try {
         if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === "") {
@@ -20,7 +19,6 @@ app.post('/api/ai/analyze-plant', async (req, res) => {
             return res.status(500).json({ error: "Missing API Key configuration token." });
         }
 
-        // Catch 'imageBuffer' and 'requestType' coming from script.js
         const { imageBuffer, requestType } = req.body;
         if (!imageBuffer) {
             return res.status(400).json({ error: "No image payload source data detected." });
@@ -30,12 +28,11 @@ app.post('/api/ai/analyze-plant', async (req, res) => {
 
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         
-        // Define dynamic prompt instructions based on the mode the user clicked
         const systemPrompt = requestType === 'SCAN' 
             ? "Perform a detailed botanical and ethnobotanical analysis of this plant specimen." 
             : "Analyze this plant specimen for plant diseases, nutrient deficiencies, or health problems, and provide treatment recommendations.";
 
-        console.log(`Transmitting request (${requestType}) to gemini-2.5-flash...`);
+        console.log(`Transmitting request (${requestType}) to gemini-1.5-flash...`);
 
         const response = await ai.models.generateContent({
             model: 'gemini-1.5-flash',
@@ -51,7 +48,6 @@ app.post('/api/ai/analyze-plant', async (req, res) => {
         });
 
         console.log("Analysis generation successful!");
-        // Return matching result key format expected by frontend layout wrapper
         return res.json({ resultText: response.text });
 
     } catch (error) {
