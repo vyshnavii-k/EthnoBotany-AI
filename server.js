@@ -1,19 +1,7 @@
 const express = require('express');
 const path = require('path');
 const bcrypt = require('bcryptjs');
-
-let GoogleGenAI;
-try {
-    const genai = require('@google/genai');
-    GoogleGenAI = genai.GoogleGenAI;
-} catch (e) {
-    try {
-        const googleGenai = require('@google/generative-ai');
-        GoogleGenAI = googleGenai.GoogleGenAI;
-    } catch (err) {
-        console.error("SDK initialization warning: Ensure @google/genai package is installed.");
-    }
-}
+const { GoogleGenAI } = require('@google/genai');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -28,7 +16,7 @@ app.post('/api/analyze', async (req, res) => {
     try {
         if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === "") {
             console.error("CRITICAL: GEMINI_API_KEY environment variable is empty or uninitialized.");
-            return res.status(500).json({ error: "Missing API Key token environment configuration." });
+            return res.status(500).json({ error: "Missing API Key configuration token." });
         }
 
         const { imageBase64, prompt } = req.body;
@@ -36,34 +24,34 @@ app.post('/api/analyze', async (req, res) => {
             return res.status(400).json({ error: "No image payload source data detected." });
         }
 
+        // Clean out raw header formatting strings if present
         const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
 
-        if (!GoogleGenAI) {
-            throw new Error("Google Gen AI SDK package initialization failed on start registry.");
-        }
-
+        // Initialize Client explicitly with the API Key parameter context
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-        console.log("Transmitting data handshakes to model pipelines...");
+        console.log("Transmitting content request handshakes to gemini-2.5-flash...");
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: [
-                prompt || "Perform a detailed botanical and ethnobotanical analysis of this plant specimen.",
                 {
                     inlineData: {
                         mimeType: "image/jpeg",
                         data: cleanBase64
                     }
-                }
+                },
+                prompt || "Perform a detailed botanical and ethnobotanical analysis of this plant specimen."
             ],
         });
 
+        console.log("Analysis generation successful!");
         return res.json({ text: response.text });
 
     } catch (error) {
-        console.error("--- ACTIVE SERVER ERROR LOG ---");
+        console.error("--- SYSTEM API EXECUTOR EXCEPTION ---");
+        console.error(error.message);
         console.error(error);
-        console.error("--------------------------------");
+        console.error("--------------------------------------");
         return res.status(500).json({ 
             error: "The AI analysis pipeline encountered an error processing your query.",
             details: error.message 
