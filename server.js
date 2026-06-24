@@ -24,10 +24,8 @@ app.post('/api/analyze', async (req, res) => {
             return res.status(400).json({ error: "No image payload source data detected." });
         }
 
-        // Clean out raw header formatting strings if present
         const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
 
-        // Initialize Client explicitly with the API Key parameter context
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         console.log("Transmitting content request handshakes to gemini-2.5-flash...");
 
