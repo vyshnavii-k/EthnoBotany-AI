@@ -1,72 +1,73 @@
 const express = require('express');
+const multer = require('multer');
 const path = require('path');
-const bcrypt = require('bcryptjs');
-const { GoogleGenAI } = require('@google/genai');
+const dotenv = require('dotenv');
 
+dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 10000;
+const upload = multer({ storage: multer.memoryStorage() });
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-app.post('/api/ai/analyze-plant', async (req, res) => {
+// Main scan endpoint using OpenRouter
+app.post('/api/scan', upload.single('image'), async (req, res) => {
     try {
-        if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === "") {
-            console.error("CRITICAL: GEMINI_API_KEY environment variable is empty.");
+        if (!process.env.GEMINI_API_KEY) {
             return res.status(500).json({ error: "Missing API Key configuration token." });
         }
-
-        const { imageBuffer, requestType } = req.body;
-        if (!imageBuffer) {
-            return res.status(400).json({ error: "No image payload source data detected." });
+        if (!req.file) {
+            return res.status(400).json({ error: "No image file uploaded." });
         }
 
-        const cleanBase64 = imageBuffer.replace(/^data:image\/\w+;base64,/, "");
+        // Convert upload buffer directly to a standard base64 data URI format
+        const base64Image = req.file.buffer.toString('base64');
+        const dataUrl = `data:${req.file.mimetype};base64,${base64Image}`;
 
-        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-        
-        const systemPrompt = requestType === 'SCAN' 
-            ? "Perform a detailed botanical and ethnobotanical analysis of this plant specimen." 
-            : "Analyze this plant specimen for plant diseases, nutrient deficiencies, or health problems, and provide treatment recommendations.";
+        const promptText = "Analyze this botanical image. Identify the plant family, common names, ethno-medicinal uses, and key active compounds. Return a clean formatted summary layout.";
 
-        console.log(`Transmitting request (${requestType}) to gemini-1.5-flash...`);
+        // Dynamic import to support the native fetch pattern cleanly
+        const fetch = (await import('node-fetch')).default;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
-            contents: [
-                {
-                    inlineData: {
-                        mimeType: "image/jpeg",
-                        data: cleanBase64
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${process.env.GEMINI_API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "google/gemini-2.5-flash", 
+                messages: [
+                    {
+                        role: "user",
+                        content: [
+                            { type: "text", text: promptText },
+                            { type: "image_url", image_url: { url: dataUrl } }
+                        ]
                     }
-                },
-                systemPrompt
-            ],
+                ]
+            })
         });
 
-        console.log("Analysis generation successful!");
-        return res.json({ resultText: response.text });
+        const data = await response.json();
+        
+        if (data.error) {
+            return res.status(500).json({ error: data.error.message || "OpenRouter engine error." });
+        }
+
+        const analysisText = data.choices[0].message.content;
+        res.json({ result: analysisText });
 
     } catch (error) {
-        console.error("--- SYSTEM API EXECUTOR EXCEPTION ---");
-        console.error(error.message);
-        return res.status(500).json({ 
-            error: "The AI analysis pipeline encountered an error processing your query.",
-            details: error.message 
-        });
+        console.error("System Execution Exception:", error);
+        res.status(500).json({ error: "Internal server processing error." });
     }
 });
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-    console.log(`====================================================`);
-    console.log(`  Secure System Framework Initialized Live!          `);
-    console.log(`  Listening at communication port interface: ${PORT} `);
-    console.log(`====================================================`);
+    console.log(`========================================`);
+    console.log(`Secure System Framework Initialized Live!`);
+    console.log(`Listening at communication port interface: ${PORT}`);
+    console.log(`========================================`);
 });
