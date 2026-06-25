@@ -38,7 +38,8 @@ app.post('/api/scan', upload.single('image'), async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash:free",
+        model: "microsoft/phi-3-medium-128k-instruct:free",
+        
         messages: [
           {
             role: "user",
