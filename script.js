@@ -95,4 +95,4 @@ async function previewAndAnalyze(event) {
         console.error('Frontend System Error:', error);
         resultDiv.innerHTML = `<p style="color: #ff4a4a; font-weight: bold; padding: 10px 0;">Network execution link failure.</p>`;
     }
-            }
+}
