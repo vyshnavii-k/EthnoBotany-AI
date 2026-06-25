@@ -24,48 +24,43 @@ app.post('/api/scan', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: "No image file uploaded." });
     }
 
-    // Standard OpenRouter Base64 string preparation
     const base64Image = req.file.buffer.toString('base64');
-
     const promptText = "Analyze this botanical image. Identify the plant family, common names, ethno-medicinal uses, and care advice.";
+    
+    // Direct Google Gemini API endpoint
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
     const fetch = (await import('node-fetch')).default;
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const response = await fetch(url, {
       method: "POST",
       headers: {
-        "Authorization": "Bearer " + process.env.GEMINI_API_KEY,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "microsoft/phi-3-medium-128k-instruct:free",
-        
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: promptText },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:${req.file.mimetype};base64,${base64Image}`
+        contents: [{
+            parts: [
+                { text: promptText },
+                {
+                    inline_data: {
+                        mime_type: req.file.mimetype,
+                        data: base64Image
+                    }
                 }
-              }
             ]
-          }
-        ]
+        }]
       })
     });
 
     const data = await response.json();
-    console.log("OpenRouter Core Log:", JSON.stringify(data));
     
-    if (data.choices && data.choices[0] && data.choices[0].message) {
-      res.json({ result: data.choices[0].message.content });
+    // Google API response structure parsing
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      res.json({ result: data.candidates[0].content.parts[0].text });
     } else if (data.error) {
-      res.status(500).json({ error: data.error.message || "OpenRouter engine error." });
+      res.status(500).json({ error: data.error.message || "Google API engine error." });
     } else {
-      res.status(500).json({ error: "Unexpected response format from API model." });
+      res.status(500).json({ error: "Unexpected response format from Google API." });
     }
 
   } catch (error) {
