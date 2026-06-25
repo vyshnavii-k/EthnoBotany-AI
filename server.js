@@ -8,7 +8,9 @@ const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(express.static(__dirname));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
 
 // Main scan endpoint using OpenRouter
 app.post('/api/scan', upload.single('image'), async (req, res) => {
