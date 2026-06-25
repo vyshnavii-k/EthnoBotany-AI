@@ -39,7 +39,8 @@ app.post('/api/scan', upload.single('image'), async (req, res) => {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.GEMINI_API_KEY}`,
+        "Authorization": "Bearer " + process.env.GEMINI_API_KEY,
+
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -56,7 +57,8 @@ app.post('/api/scan', upload.single('image'), async (req, res) => {
       })
     });
 
-    const data = await response.json();
+    console.log("OpenRouter Response Object:", JSON.stringify(data));
+    
     
     if (data.choices && data.choices[0]) {
       res.json({ result: data.choices[0].message.content });
