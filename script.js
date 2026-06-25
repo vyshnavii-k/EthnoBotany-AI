@@ -64,9 +64,6 @@ function setScanMode(mode) {
     document.getElementById('btn-mode-health').classList.toggle('active', mode === 'DIAGNOSE_HEALTH');
 }
 
-document.getElementById('plant-direct-camera').addEventListener('change', previewAndAnalyze);
-document.getElementById('plant-gallery-files').addEventListener('change', previewAndAnalyze);
-
 async function previewAndAnalyze(event) {
     const file = event.target.files[0];
     if (!file) return;
