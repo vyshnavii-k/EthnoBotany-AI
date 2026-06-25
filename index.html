@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EthnoBotany Premium Dark</title>
+    <title>Ethnobotany Premium Dark</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,18 +12,18 @@
         <div class="top-bar">
             <div class="brand">
                 <span class="brand-icon">🌿</span>
-                <h1>EthnoBotany <span class="accent-text">AI</span></h1>
+                <span class="brand-text">EthnoBotany <span class="accent-text">AI</span></span>
             </div>
             <div id="auth-header-state"></div>
         </div>
     </header>
 
     <main class="content-area">
-        
+
         <section id="tab-scanner" class="app-tab">
             <div class="mode-selector-pill">
-                <button id="btn-mode-scan" class="btn-mode active" onclick="setScanMode('SCAN')">General Analysis</button>
-                <button id="btn-mode-health" class="btn-mode" onclick="setScanMode('DIAGNOSE_HEALTH')">Check Plant Problem</button>
+                <button id="btn-mode-scan" class="tab-mode active" onclick="setScanMode('SCAN')">General Analysis</button>
+                <button id="btn-mode-health" class="tab-mode" onclick="setScanMode('DIAGNOSE_HEALTH')">Check Plant Problem</button>
             </div>
 
             <div class="capture-control-panel">
@@ -32,23 +32,22 @@
 
                 <label for="plant-gallery-files" class="action-btn-pill gallery-accent">📁 Upload from Files</label>
                 <input type="file" id="plant-gallery-files" accept="image/*" onchange="previewAndAnalyze(event)">
-                
             </div>
 
-            <div id="ai-output-card" class="output-container hidden">
-                <div id="output-results"></div>
+            <div id="ai-output-container" class="output-container hidden">
+                <div id="ai-output-results"></div>
             </div>
 
             <div style="margin-top: 32px;">
                 <h3 style="color: var(--primary-accent); margin-bottom: 12px; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">🌐 Community Board Feed</h3>
                 <div id="community-feed-container" class="stack-layout">
-                    <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">No public specimen shares logged yet.</p>
+                     <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">No public specimen shares logged yet. Be the first to post!</p>
                 </div>
             </div>
         </section>
 
         <section id="tab-marketplace" class="app-tab hidden">
-            <div id="market-restricted-banner" class="lock-overlay">
+            <div class="market-restricted-banner" class="lock-overlay">
                 <p>🔒 Please authenticate your identity to buy or list marketplace items.</p>
                 <button class="btn-primary" onclick="openAuthModal()">Sign In Now</button>
             </div>
@@ -57,83 +56,79 @@
             </div>
         </section>
 
-        <section id="tab-chatbot" class="app-tab hidden">
+        <section id="tab-consult" class="app-tab hidden">
             <div class="chat-wrapper">
-                <div id="chat-stream-box" class="chat-stream">
-                    <div class="msg bot">Greetings! Send any botanical questions regarding your local specimen flora.</div>
+                <div class="chat-stream-box" id="chat-stream">
+                    <div class="msg bot-box">Greetings! Send any botanical questions regarding your local specimen flora.</div>
                 </div>
-                <form id="chat-composer-form" class="chat-input-bar">
-                    <input type="text" id="chat-input-text" placeholder="Inquire about watering, soil, properties..." autocomplete="off">
-                    <button type="submit">➡️</button>
+                <form id="chat-response-form" class="chat-input-bar">
+                    <input type="text" id="chat-input-text" placeholder="Inquire about watering, soil properties..." autocomplete="off">
+                    <button type="submit">⚡</button>
                 </form>
             </div>
         </section>
 
         <section id="tab-reminders" class="app-tab hidden">
             <div id="profile-restricted-banner" class="lock-overlay">
-                <p>🔒 Access your saved scan logs history and set alerts by signing in.</p>
+                <p>🔒 Access your saved plant logs history and set alerts by signing in.</p>
                 <button class="btn-primary" onclick="openAuthModal()">Sign In Now</button>
             </div>
             <div id="profile-content-secured" class="hidden">
-                <div class="user-profile-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <div class="user-profile-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3 id="user-display-name">Botanist Vault</h3>
-                    <button class="btn-primary" style="background:#da3633;" onclick="executeLogout()">Sign Out</button>
+                    <button class="btn-primary" style="background: #da3838;" onclick="executeLogOut()">Sign Out</button>
                 </div>
                 <div class="interactive-card">
-                    <h4>Add Hydration Routine</h4>
+                    <h4>📅 Add Hydration Routines</h4>
                     <form id="reminder-form" class="stack-form">
-                        <input type="text" id="remind-plant-name" placeholder="Specimen Name" required>
+                        <input type="text" id="reg-plant-name" placeholder="Specimen Name" required>
                         <input type="number" id="remind-interval" placeholder="Alert Cycle Interval (Days)" required>
                         <button type="submit" class="btn-submit-action">Set Alert Tracker</button>
                     </form>
                 </div>
-                <div id="reminders-timeline-container" class="stack-layout" style="margin-top:15px;"></div>
-                <h4 style="margin-top:24px; margin-bottom:12px; color:#2ea44f;">Your Saved Local History</h4>
+                <div id="reminders-timeline-container" class="stack-layout" style="margin-top: 15px;"></div>
+                <h4 style="margin-top: 25px; margin-bottom: 12px; color: #a4b1cd;">📂 Your Saved Scan History</h4>
                 <div id="saved-scans-container" class="stack-layout"></div>
             </div>
         </section>
+
     </main>
 
     <div id="auth-modal" class="modal-backdrop hidden">
         <div class="modal-card">
             <h3 id="auth-modal-title">Sign In</h3>
             
-            <div id="form-login-view" class="stack-form">
-                <input type="email" id="login-email" placeholder="Email Address">
-                <input type="password" id="login-password" placeholder="Password">
-                <button class="btn-primary" onclick="submitLogin()">Sign In</button>
+            <form id="form-login-view" class="stack-form" onsubmit="handleMockLogin(event)">
+                <input type="email" id="login-email" placeholder="Email Address" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button type="submit" class="btn-primary">Identify / Login</button>
                 
-                <div style="display:flex; align-items:center; margin:10px 0;"><div style="height:1px; background:#30363d; flex:1;"></div><span style="font-size:0.75rem; color:#8b949e; padding:0 10px;">OR</span><div style="height:1px; background:#30363d; flex:1;"></div></div>
+                <div style="display: flex; align-items: center; margin: 15px 0;"><hr style="flex:1; height:1px; background:#383d4a; border:none;"> <span style="font-size:0.8rem; text-align:center; color:#6b768e; margin:0 10px;">New user?</span> <hr style="flex:1; height:1px; background:#383d4a; border:none;"></div>
                 
-                <button class="btn-primary" style="background:#ffffff; color:#1f2328; display:flex; align-items:center; justify-content:center; gap:10px;" onclick="simulateGoogleLogin()">
-                    <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.97-1.08 7.96-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.08 1.16-3.13 0-5.78-2.11-6.73-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24A7.16 7.16 0 0 1 4.9 12c0-.79.13-1.57.37-2.31V6.54H1.21A11.94 11.94 0 0 0 0 12c0 1.92.45 3.74 1.21 5.46l4.06-3.22z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.22 0 12 0 7.31 0 3.18 2.12 1.21 6.54l4.06 3.22c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
-                    Continue with Google
-                </button>
-                <p style="font-size:0.8rem; text-align:center; color:#8b949e; margin-top:14px;">New user? <a href="#" style="color:#2ea44f;" onclick="toggleAuthForm('REG')">Create Account</a></p>
-            </div>
+                <button type="button" class="btn-primary" style="background: #252830; color: #a4b1cd;" onclick="toggleAuthView()">Register Account</button>
+            </form>
 
-            <div id="form-register-view" class="stack-form hidden">
-                <input type="text" id="reg-user" placeholder="Username">
-                <input type="email" id="reg-email" placeholder="Email Address">
-                <input type="password" id="reg-password" placeholder="Choose Password">
-                <button class="btn-primary" onclick="submitRegistration()">Register Account</button>
-                <p style="font-size:0.8rem; text-align:center; color:#8b949e; margin-top:14px;">Already have an account? <a href="#" style="color:#2ea44f;" onclick="toggleAuthForm('LGN')">Sign In</a></p>
-            </div>
+            <form id="form-register-view" class="stack-form hidden" onsubmit="handleMockRegistration(event)">
+                <input type="text" id="reg-username" placeholder="Username" required>
+                <input type="email" id="reg-email" placeholder="Email Address" required>
+                <input type="password" id="reg-password" placeholder="Choose Password" required>
+                <button type="submit" class="btn-primary">Register Account</button>
+                <p style="font-size: 0.85rem; text-align: center; color: #6b768e; margin-top: 14px;">Already have an account? <span style="color:var(--primary-accent); cursor:pointer;" onclick="toggleAuthView()">Login</span></p>
+            </form>
 
-            <div class="modal-actions"><button class="btn-flat" onclick="closeAuthModal()">Close</button></div>
+            <div class="modal-actions"><button class="btn-flat" onclick="closeAuthModal()">Close Window</button></div>
         </div>
     </div>
 
     <footer>
         <nav class="bottom-navigation-bar">
-            <button id="nav-scan" class="nav-item active" onclick="switchTab('tab-scanner')">🔍 <span>Analyze</span></button>
-            <button id="nav-market" class="nav-item" onclick="switchTab('tab-marketplace')">🛒 <span>Sourcing</span></button>
-            <button id="nav-chat" class="nav-item" onclick="switchTab('tab-chatbot')">💬 <span>Consult</span></button>
-            <button id="nav-remind" class="nav-item" onclick="switchTab('tab-reminders')">👤 <span>Profile</span></button>
+            <button id="nav-item-scanner" class="nav-item active" onclick="switchTab('scanner')">🔍 <span>Analyze</span></button>
+            <button id="nav-item-market" class="nav-item" onclick="switchTab('marketplace')">🛒 <span>Sourcing</span></button>
+            <button id="nav-item-consult" class="nav-item" onclick="switchTab('consult')">💬 <span>Consult</span></button>
+            <button id="nav-item-profile" class="nav-item" onclick="switchTab('reminders')">👤 <span>Profile</span></button>
         </nav>
     </footer>
 
     <script src="script.js"></script>
 </body>
 </html>
-
