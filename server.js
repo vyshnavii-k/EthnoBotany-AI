@@ -5,7 +5,11 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 const app = express();
-const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fieldSize: 50 * 1024 * 1024, fileSize: 50 * 1024 * 1024 }
+});
+
 
 app.use(express.static(__dirname));
 app.use(express.json({ limit: '50mb' }));
