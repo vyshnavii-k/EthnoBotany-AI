@@ -15,6 +15,8 @@
         .comment-item { background: #1a1a1a; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; border-left: 3px solid #4CAF50; }
         .comment-user { font-weight: bold; color: #4CAF50; font-size: 13px; }
         .comment-text { font-size: 14px; margin-top: 2px; }
+        .profile-posts-box { margin-top: 15px; padding-top: 15px; border-top: 1px solid #333; }
+        .profile-thumb { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: #1c1c1c; padding: 8px; border-radius: 6px; }
     </style>
 </head>
 <body>
@@ -22,17 +24,22 @@
     <div id="auth-panel" class="card">
         <h3 style="margin-top:0; color:#4CAF50;">🔐 Member Profile Panel</h3>
         <p id="welcome-message" style="color:#aaa; font-size:14px;">Create a unique profile username below if you want to publish scanned findings or leave comments on other posts.</p>
+        
         <div id="auth-form-inputs">
             <input type="email" id="user-email" placeholder="Email Address">
             <input type="text" id="user-username" placeholder="Choose Unique Username">
             <input type="password" id="user-password" placeholder="Password">
             <button class="btn-green" onclick="handleAuth()">Register Account & Login</button>
         </div>
+
+        <div id="my-profile-tab" style="display: none;" class="profile-posts-box">
+            <h4 style="color: #2196F3; margin: 0 0 10px 0;">📂 My Scanned History</h4>
+            <div id="my-personal-posts-target" style="color: #888; font-size: 13px;">You haven't posted any scanned plant findings yet.</div>
+        </div>
     </div>
 
     <div class="card">
         <h3 style="margin-top:0;">🌿 EthnoBotany AI Scanner</h3>
-        
         <input type="file" id="file-chooser" accept="image/*" style="display:none;" onchange="imageSelected(this)">
         <input type="file" id="camera-chooser" accept="image/*" capture="environment" style="display:none;" onchange="imageSelected(this)">
         
@@ -64,8 +71,24 @@
         let currentActiveBase64 = "";
         let selectedFilePayload = null;
 
-        if (localStorage.getItem('username')) {
-            showLoggedInUI();
+        // Auto-fetch feed on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchGlobalFeed();
+            if (localStorage.getItem('username')) {
+                showLoggedInUI();
+            }
+        });
+
+        async function fetchGlobalFeed() {
+            try {
+                const res = await fetch('/api/feed');
+                const data = await res.json();
+                if (data.feed) {
+                    renderFeed(data.feed);
+                }
+            } catch (err) {
+                console.error("Error loading feed:", err);
+            }
         }
 
         async function handleAuth() {
@@ -73,7 +96,7 @@
             const username = document.getElementById('user-username').value.trim();
             const password = document.getElementById('user-password').value;
 
-            if(!email || !username || !password) return alert("Please fill out all identity input forms!");
+            if(!email || !username || !password) return alert("Please fill out all fields!");
 
             const res = await fetch('/api/register', {
                 method: "POST",
@@ -87,12 +110,14 @@
             } else {
                 localStorage.setItem('username', data.username);
                 showLoggedInUI();
+                fetchGlobalFeed(); // Refresh view
             }
         }
 
         function showLoggedInUI() {
             document.getElementById('auth-form-inputs').style.display = 'none';
             document.getElementById('welcome-message').innerHTML = `Logged in securely as: <strong style="color:#4CAF50;">@${localStorage.getItem('username')}</strong>`;
+            document.getElementById('my-profile-tab').style.display = 'block';
         }
 
         function imageSelected(inputNode) {
@@ -101,7 +126,6 @@
             document.getElementById('selected-file-status').innerText = `Selected: ${selectedFilePayload.name} (Processing...)`;
             document.getElementById('selected-file-status').style.display = 'block';
             
-            // Auto trigger upload once image loads
             executeUploadProcessing();
         }
 
@@ -113,11 +137,7 @@
                 const formData = new FormData();
                 formData.append('image', selectedFilePayload);
 
-                // No verification checks on headers so anyone can run this
-                const res = await fetch('/api/scan', {
-                    method: "POST",
-                    body: formData
-                });
+                const res = await fetch('/api/scan', { method: "POST", body: formData });
                 const data = await res.json();
 
                 document.getElementById('selected-file-status').style.display = 'none';
@@ -180,9 +200,14 @@
         }
 
         function renderFeed(feedItems) {
-            const target = document.getElementById('global-board-target');
-            target.innerHTML = feedItems.length === 0 ? '<p style="color:#555; padding-left:5px;">No public specimen shares logged yet. Be the first to post!</p>' : '';
+            const globalTarget = document.getElementById('global-board-target');
+            const personalTarget = document.getElementById('my-personal-posts-target');
+            const currentUser = localStorage.getItem('username');
+
+            globalTarget.innerHTML = feedItems.length === 0 ? '<p style="color:#555; padding-left:5px;">No public specimen shares logged yet. Be the first to post!</p>' : '';
             
+            let personalPostsHtml = "";
+
             feedItems.forEach(item => {
                 let commentsHtml = item.comments.map(c => `
                     <div class="comment-item">
@@ -191,7 +216,20 @@
                     </div>
                 `).join('');
 
-                target.innerHTML += `
+                // Check if this post belongs to the logged-in user to show in profile history
+                if (currentUser && item.username.toLowerCase() === currentUser.toLowerCase()) {
+                    personalPostsHtml += `
+                        <div class="profile-thumb">
+                            <img src="${item.image}" style="width:50px; height:50px; object-fit:cover; border-radius:4px;">
+                            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px;">
+                                <strong>Scanned Specimen</strong><br>
+                                <span style="font-size:11px; color:#aaa;">${item.description.substring(0, 40)}...</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                globalTarget.innerHTML += `
                     <div class="card">
                         <div style="font-weight:bold; margin-bottom:10px; color:#aaa;">Shared by: @${item.username}</div>
                         <img src="${item.image}" style="max-width:100%; border-radius:6px; margin-bottom:10px;">
@@ -208,6 +246,13 @@
                     </div>
                 `;
             });
+
+            // Populate the history tab if you have items inside
+            if (currentUser && personalPostsHtml !== "") {
+                personalTarget.innerHTML = personalPostsHtml;
+            } else if (currentUser) {
+                personalTarget.innerHTML = "You haven't posted any scanned plant findings yet.";
+            }
         }
     </script>
 </body>
