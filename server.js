@@ -30,14 +30,16 @@ app.post('/api/register', (req, res) => {
   res.json({ success: true, message: "Account created successfully!", username });
 });
 
-// 2. SCAN AND ANALYZE PLANT (FREE)
+// 2. SCAN AND ANALYZE PLANT (WITH BOTANICAL VALIDATION GATE)
 app.post('/api/scan', upload.single('image'), async (req, res) => {
   try {
     if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: "Missing API Key configuration token." });
     if (!req.file) return res.status(400).json({ error: "No image file uploaded." });
 
     const base64Image = req.file.buffer.toString('base64');
-    const promptText = "Analyze this botanical image. Provide a detailed description identifying the plant family, common names, ethno-medicinal uses, and care advice. Do not use markdown syntax, asterisks, hash characters, or raw formatting tags anywhere in the reply.";
+    
+    // Strict prompt instruction enforcing plant screening
+    const promptText = "First, evaluate if this image contains a plant, leaf, flower, tree, seed, or fruit. If the image does NOT contain a plant or botanical specimen, reply EXACTLY with this text: 'Validation Error: This does not look like a plant specimen. Please upload an image of a plant or leaf.' If it IS a plant, proceed to provide a detailed description identifying the plant family, common names, ethno-medicinal uses, and care advice without using markdown syntax, asterisks, or hash characters.";
     
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
     const response = await fetch(url, {
@@ -52,6 +54,12 @@ app.post('/api/scan', upload.single('image'), async (req, res) => {
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       let analysisText = data.candidates[0].content.parts[0].text;
       analysisText = analysisText.replace(/[#*`_-]/g, '').trim();
+
+      // Check if the image failed the botanical validation gate
+      if (analysisText.includes("Validation Error:")) {
+        return res.status(400).json({ error: analysisText.replace("Validation Error:", "").trim() });
+      }
+
       res.json({ result: analysisText });
     } else {
       res.status(500).json({ error: "Unexpected content payload format." });
