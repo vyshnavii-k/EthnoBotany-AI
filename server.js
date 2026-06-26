@@ -15,7 +15,6 @@ app.use(express.static(__dirname));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Simple in-memory collections (resets if the Render free instance sleeps)
 const users = []; 
 const publicFeed = [];
 
@@ -35,13 +34,9 @@ app.post('/api/register', (req, res) => {
   res.json({ success: true, message: "Account created successfully!", username });
 });
 
-// 2. SCAN AND ANALYZE PLANT (Gated: Checks for active user header)
+// 2. SCAN AND ANALYZE PLANT (OPEN TO EVERYONE - NO LOGIN UNTIL POSTING)
 app.post('/api/scan', upload.single('image'), async (req, res) => {
   try {
-    const loggedInUser = req.headers['x-user-auth'];
-    if (!loggedInUser) {
-      return res.status(401).json({ error: "Access denied. Please log in first to scan plants." });
-    }
     if (!process.env.GEMINI_API_KEY) {
       return res.status(500).json({ error: "Missing API Key configuration token." });
     }
@@ -50,9 +45,7 @@ app.post('/api/scan', upload.single('image'), async (req, res) => {
     }
 
     const base64Image = req.file.buffer.toString('base64');
-    
-    // Explicitly instructing the model to leave out raw markdown punctuation
-    const promptText = "Analyze this botanical image. Provide a detailed, well-structured description identifying the plant family, common names, ethno-medicinal uses, and care advice. Do not use markdown syntax, asterisks, hash characters, or raw formatting tags anywhere in the reply.";
+    const promptText = "Analyze this botanical image. Provide a detailed description identifying the plant family, common names, ethno-medicinal uses, and care advice. Do not use markdown syntax, asterisks, hash characters, or raw formatting tags anywhere in the reply.";
     
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
@@ -63,12 +56,7 @@ app.post('/api/scan', upload.single('image'), async (req, res) => {
         contents: [{
             parts: [
                 { text: promptText },
-                {
-                    inline_data: {
-                        mime_type: req.file.mimetype,
-                        data: base64Image
-                    }
-                }
+                { inline_data: { mime_type: req.file.mimetype, data: base64Image } }
             ]
         }]
       })
@@ -78,19 +66,12 @@ app.post('/api/scan', upload.single('image'), async (req, res) => {
     
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       let analysisText = data.candidates[0].content.parts[0].text;
-      
-      // Secondary fallback cleanup stripping stray formatting markers
       analysisText = analysisText.replace(/[#*`_-]/g, '').trim();
-
       res.json({ result: analysisText });
-    } else if (data.error) {
-      res.status(500).json({ error: data.error.message || "Google API error." });
     } else {
       res.status(500).json({ error: "Unexpected content payload format." });
     }
-
   } catch (error) {
-    console.error("System Error:", error);
     res.status(500).json({ error: "Internal processing exception: " + error.message });
   }
 });
@@ -100,13 +81,13 @@ app.get('/api/feed', (req, res) => {
   res.json({ feed: publicFeed });
 });
 
-// 4. PUBLISH TO BOARD FEED (Gated)
+// 4. PUBLISH TO BOARD FEED (Gated: Requires Account Logged In)
 app.post('/api/feed/post', (req, res) => {
   const loggedInUser = req.headers['x-user-auth'];
   const { imageData, description } = req.body;
 
   if (!loggedInUser) {
-    return res.status(401).json({ error: "Please log in to publish posts." });
+    return res.status(401).json({ error: "Please register/login using the profile panel at the top to publish posts." });
   }
 
   const newPost = {
@@ -121,13 +102,13 @@ app.post('/api/feed/post', (req, res) => {
   res.json({ success: true, feed: publicFeed });
 });
 
-// 5. POST COMMENT ON SPECIMEN (Gated)
+// 5. POST COMMENT ON SPECIMEN (Gated: Requires Account Logged In)
 app.post('/api/feed/comment', (req, res) => {
   const loggedInUser = req.headers['x-user-auth'];
   const { postId, text } = req.body;
 
   if (!loggedInUser) {
-    return res.status(401).json({ error: "Please log in to leave comments." });
+    return res.status(401).json({ error: "Please register/login using the profile panel at the top to leave comments." });
   }
 
   const post = publicFeed.find(p => p.id === Number(postId));
@@ -138,6 +119,4 @@ app.post('/api/feed/comment', (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`Listening at port: ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Listening at port: ${PORT}`));
