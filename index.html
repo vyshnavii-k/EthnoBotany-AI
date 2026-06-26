@@ -41,9 +41,25 @@
         .nav-item { background: none; border: none; color: #666; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 0; width: auto; }
         .nav-item.active { color: #4CAF50; }
         .nav-icon { font-size: 18px; }
+
+        /* Profile posts history style */
+        .profile-posts-box { margin-top: 15px; padding-top: 15px; border-top: 1px solid #333; }
+        .profile-thumb { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: #1c1c1c; padding: 8px; border-radius: 6px; }
+
+        /* Real-time Loader Animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
+
+    <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white;">
+        <div style="width: 50px; height: 50px; border: 5px solid #222; border-top: 5px solid #4CAF50; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;"></div>
+        <div style="font-size: 16px; font-weight: bold; letter-spacing: 0.5px;">Uploading & Analyzing Specimen...</div>
+        <div style="font-size: 12px; color: #666; margin-top: 5px;">Please wait while Gemini processes the image</div>
+    </div>
 
     <div class="app-header">
         <div class="logo-area">🌿 EthnoBotany <span style="color:#4CAF50;">AI</span></div>
@@ -199,16 +215,29 @@
                 const formData = new FormData();
                 formData.append('image', selectedFilePayload);
 
-                const res = await fetch('/api/scan', { method: "POST", body: formData });
-                const data = await res.json();
-                document.getElementById('selected-file-status').style.display = 'none';
+                // 🚀 DISPLAY OVERLAY LOADER
+                const overlay = document.getElementById('loading-overlay');
+                if (overlay) overlay.style.display = 'flex';
 
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    document.getElementById('scanned-image-render').src = currentActiveBase64;
-                    document.getElementById('clean-description-content').innerText = data.result;
-                    document.getElementById('analysis-output-card').style.display = 'block';
+                try {
+                    const res = await fetch('/api/scan', { method: "POST", body: formData });
+                    const data = await res.json();
+
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        document.getElementById('scanned-image-render').src = currentActiveBase64;
+                        document.getElementById('clean-description-content').innerText = data.result;
+                        document.getElementById('analysis-output-card').style.display = 'block';
+                        document.getElementById('analysis-output-card').scrollIntoView({ behavior: 'smooth' });
+                    }
+                } catch (err) {
+                    console.error("Transmission fault", err);
+                    alert("Network error processing request payload.");
+                } finally {
+                    // 🛑 CLOSE OVERLAY LOADER
+                    if (overlay) overlay.style.display = 'none';
+                    document.getElementById('selected-file-status').style.display = 'none';
                 }
             };
             reader.readAsDataURL(selectedFilePayload);
@@ -303,4 +332,23 @@
                         <p style="font-size:14px; line-height:1.5; color:#ddd; text-align:justify; margin:0 0 15px 0;">${item.description}</p>
                         
                         <div style="margin-top:15px; padding-top:10px; border-top:1px solid #1a1a1a;">
-                            <h5 style="margin:0 0 8px 0; color:#55
+                            <h5 style="margin:0 0 8px 0; color:#555;">Comments (${item.comments.length})</h5>
+                            <div>${commentsHtml}</div>
+                            <div style="display:flex; gap:8px; margin-top:8px;">
+                                <input type="text" id="comment-in-${item.id}" placeholder="Write a public comment..." style="margin:0; padding:8px;">
+                                <button class="btn-green" onclick="postComment(${item.id})" style="width:auto; margin:0; padding:0 15px; font-size:13px;">Send</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (currentUser && personalPostsHtml !== "") {
+                personalTarget.innerHTML = personalPostsHtml;
+            } else {
+                personalTarget.innerHTML = "You haven't posted any scanned findings yet.";
+            }
+        }
+    </script>
+</body>
+</html>
