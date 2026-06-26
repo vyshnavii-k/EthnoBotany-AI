@@ -61,7 +61,7 @@ app.post('/api/scan', upload.single('image'), async (req, res) => {
   }
 });
 
-// NEW 3. BOTANICAL CHATBOT ENDPOINT (For clearing doubts)
+// 3. BOTANICAL CHATBOT ENDPOINT (Exposing direct system error messages)
 app.post('/api/chat', async (req, res) => {
   try {
     const { message } = req.body;
@@ -79,12 +79,16 @@ app.post('/api/chat', async (req, res) => {
     });
 
     const data = await response.json();
+    console.log("Chat API Response Log:", JSON.stringify(data));
+
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
       let replyText = data.candidates[0].content.parts[0].text;
       replyText = replyText.replace(/[#*`_-]/g, '').trim();
       res.json({ reply: replyText });
+    } else if (data.error) {
+      res.status(500).json({ error: `Google Error: ${data.error.message}` });
     } else {
-      res.status(500).json({ error: "Could not generate chat response." });
+      res.status(500).json({ error: "Unexpected response structure from text engine." });
     }
   } catch (error) {
     res.status(500).json({ error: "Chat processing exception: " + error.message });
