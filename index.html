@@ -7,7 +7,6 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0a0a0a; color: #fff; margin: 0; padding: 0; padding-bottom: 70px; }
         
-        /* Premium Top Nav Header matching your screen layout */
         .app-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #000; border-bottom: 1px solid #111; }
         .logo-area { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 18px; }
         .btn-signin-nav { background: #4CAF50; color: white; padding: 6px 14px; border-radius: 6px; font-weight: bold; border: none; font-size: 13px; cursor: pointer; }
@@ -16,7 +15,6 @@
         .container { padding: 15px; }
         .card { background: #121212; border: 1px solid #222; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
         
-        /* Secondary Segment Filters */
         .segment-container { display: flex; gap: 10px; margin-bottom: 15px; }
         .segment-btn { flex: 1; padding: 10px; border-radius: 20px; border: none; font-weight: bold; background: #1a1a1a; color: #888; cursor: pointer; font-size: 13px; }
         .segment-btn.active { background: #4CAF50; color: white; }
@@ -27,26 +25,26 @@
         .btn-blue { background: #2196F3; color: white; margin-top: 8px; }
         .btn-dark { background: #1a1a1a; color: #fff; border: 1px solid #333; margin-top: 8px; }
         
-        /* Core View Containers */
         .app-view { display: none; }
         .app-view.active { display: block; }
 
-        /* Comment Cards layout */
         .comment-item { background: #1a1a1a; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; border-left: 3px solid #4CAF50; }
         .comment-user { font-weight: bold; color: #4CAF50; font-size: 12px; }
         .comment-text { font-size: 13px; margin-top: 2px; color: #ddd; }
 
-        /* Bottom Sticky Menu Items */
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: #0a0a0a; border-top: 1px solid #222; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
         .nav-item { background: none; border: none; color: #666; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 0; width: auto; }
         .nav-item.active { color: #4CAF50; }
         .nav-icon { font-size: 18px; }
 
-        /* Profile posts history style */
         .profile-posts-box { margin-top: 15px; padding-top: 15px; border-top: 1px solid #333; }
         .profile-thumb { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: #1c1c1c; padding: 8px; border-radius: 6px; }
 
-        /* Real-time Loader Animation */
+        .chat-box { height: 300px; overflow-y: auto; background: #161616; border: 1px solid #222; border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 14px; border-radius: 12px; max-width: 80%; line-height: 1.4; font-size: 14px; }
+        .msg.user { background: #2196F3; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg.bot { background: #222; color: #e0e0e0; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #333; }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -58,7 +56,7 @@
     <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white;">
         <div style="width: 50px; height: 50px; border: 5px solid #222; border-top: 5px solid #4CAF50; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;"></div>
         <div style="font-size: 16px; font-weight: bold; letter-spacing: 0.5px;">Uploading & Analyzing Specimen...</div>
-        <div style="font-size: 12px; color: #666; margin-top: 5px;">Please wait while Gemini processes the image</div>
+        <div style="font-size: 12px; color: #666; margin-top: 5px;">Please wait while the engine processes the image</div>
     </div>
 
     <div class="app-header">
@@ -87,14 +85,9 @@
 
             <div id="analysis-output-card" class="card" style="display:none;">
                 <h2 style="color:#4CAF50; margin-top:0; font-size:22px;">Plant Analysis Discovery</h2>
-                
-                <div style="text-align:center; margin:15px 0;">
-                    <img id="scanned-image-render" src="" style="max-width:100%; max-height:250px; border-radius:8px; border:1px solid #333;">
-                </div>
-                
+                <div style="text-align:center; margin:15px 0;"><img id="scanned-image-render" src="" style="max-width:100%; max-height:250px; border-radius:8px; border:1px solid #333;"></div>
                 <h3 style="color:#aaa; font-size:14px; text-transform:uppercase; margin-bottom:5px;">Description</h3>
                 <p id="clean-description-content" style="line-height:1.6; font-size:15px; margin-bottom:20px; text-align:justify; color:#e0e0e0;"></p>
-                
                 <button class="btn-blue" onclick="publishScannedResult()">📤 Post Analysis to Feed</button>
             </div>
 
@@ -102,10 +95,23 @@
             <div id="global-board-target"></div>
         </div>
 
+        <div id="view-consult" class="app-view card">
+            <h3 style="margin-top:0; color:#4CAF50;">💬 EthnoBotany Doubt Assistant</h3>
+            <p style="color:#aaa; font-size:13px; margin-bottom:15px;">Ask questions regarding medicinal uses, growing patterns, or specific care tips.</p>
+            
+            <div id="chat-messages-container" class="chat-box">
+                <div class="msg bot">Hello! I am your botanical helper. Ask me any plant question to clear your doubts! 🌱</div>
+            </div>
+            
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="chat-user-input" placeholder="Type plant doubt here..." style="margin:0;">
+                <button class="btn-green" onclick="sendChatQuery()" style="width:auto; padding:0 20px; margin:0;">Ask</button>
+            </div>
+        </div>
+
         <div id="view-profile" class="app-view">
             <div id="logged-out-form" class="card">
                 <h3 style="margin-top:0; color:#4CAF50;">🔐 Establish Member Account</h3>
-                <p style="color:#aaa; font-size:13px; margin-bottom:15px;">Create a profile to sync data history records, post to public timelines, or drop comments.</p>
                 <input type="email" id="user-email" placeholder="Email Address">
                 <input type="text" id="user-username" placeholder="Choose Unique Username">
                 <input type="password" id="user-password" placeholder="Password">
@@ -114,19 +120,15 @@
 
             <div id="logged-in-profile" class="card" style="display:none;">
                 <h3 id="profile-greeting" style="margin-top:0; color:#4CAF50;">Welcome</h3>
-                <p style="color:#888; font-size:13px;">Manage your configurations, saved plants, and comment logs below.</p>
-                
                 <div style="margin-top:20px; padding:15px 0; border-top:1px solid #222;">
                     <h4 style="color:#2196F3; margin:0 0 12px 0;">📂 My Scanned History</h4>
                     <div id="my-personal-posts-target" style="color:#666; font-size:13px;">You haven't posted any scanned findings yet.</div>
                 </div>
-
                 <button class="btn-dark" style="background:#440000; color:#ff8888; border:1px solid #770000; margin-top:25px;" onclick="handleLogout()">🚪 Logout Account</button>
             </div>
         </div>
 
         <div id="view-sourcing" class="app-view card"><h3>🛒 Sourcing Market</h3><p style="color:#666;">Market supply pipelines loading...</p></div>
-        <div id="view-consult" class="app-view card"><h3>💬 Expert Botanical Consultation</h3><p style="color:#666;">Consulting interfaces streaming soon...</p></div>
 
     </div>
 
@@ -164,17 +166,40 @@
         function switchView(viewName) {
             document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
             document.getElementById(`view-${viewName}`).classList.add('active');
             document.getElementById(`nav-btn-${viewName}`).classList.add('active');
+        }
+
+        async function sendChatQuery() {
+            const inputField = document.getElementById('chat-user-input');
+            const query = inputField.value.trim();
+            if(!query) return;
+
+            const chatBox = document.getElementById('chat-messages-container');
+            chatBox.innerHTML += `<div class="msg user">${query}</div>`;
+            inputField.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: query })
+                });
+                const data = await res.json();
+                const reply = data.reply || data.error || "Sorry, I am having trouble connecting.";
+                chatBox.innerHTML += `<div class="msg bot">${reply}</div>`;
+            } catch(e) {
+                chatBox.innerHTML += `<div class="msg bot">Connection error. Please try again.</div>`;
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         async function handleAuth() {
             const email = document.getElementById('user-email').value;
             const username = document.getElementById('user-username').value.trim();
             const password = document.getElementById('user-password').value;
-
-            if(!email || !username || !password) return alert("Please populate all identity fields!");
+            if(!email || !username || !password) return alert("Please fill out all fields!");
 
             const res = await fetch('/api/register', {
                 method: "POST",
@@ -182,29 +207,17 @@
                 body: JSON.stringify({ email, username, password })
             });
             const data = await res.json();
-            
-            if(data.error) {
-                alert(data.error);
-            } else {
-                localStorage.setItem('username', data.username);
-                checkUserStatus();
-                switchView('analyze');
-                renderFeed(cachedGlobalFeed);
-            }
+            if(data.error) { alert(data.error); } 
+            else { localStorage.setItem('username', data.username); checkUserStatus(); switchView('analyze'); renderFeed(cachedGlobalFeed); }
         }
 
-        function handleLogout() {
-            localStorage.removeItem('username');
-            checkUserStatus();
-            switchView('analyze');
-            renderFeed(cachedGlobalFeed);
-        }
+        function handleLogout() { localStorage.removeItem('username'); checkUserStatus(); switchView('analyze'); renderFeed(cachedGlobalFeed); }
 
         function imageSelected(inputNode) {
             if (inputNode.files.length === 0) return;
             selectedFilePayload = inputNode.files[0];
             document.getElementById('selected-file-status').style.display = 'block';
-            document.getElementById('selected-file-status').innerText = "Processing biological image data...";
+            document.getElementById('selected-file-status').innerText = "Processing image data...";
             executeUploadProcessing();
         }
 
@@ -214,31 +227,21 @@
                 currentActiveBase64 = reader.result;
                 const formData = new FormData();
                 formData.append('image', selectedFilePayload);
-
-                // 🚀 DISPLAY OVERLAY LOADER
                 const overlay = document.getElementById('loading-overlay');
                 if (overlay) overlay.style.display = 'flex';
 
                 try {
                     const res = await fetch('/api/scan', { method: "POST", body: formData });
                     const data = await res.json();
-
-                    if (data.error) {
-                        alert(data.error);
-                    } else {
+                    if (data.error) { alert(data.error); } 
+                    else {
                         document.getElementById('scanned-image-render').src = currentActiveBase64;
                         document.getElementById('clean-description-content').innerText = data.result;
                         document.getElementById('analysis-output-card').style.display = 'block';
                         document.getElementById('analysis-output-card').scrollIntoView({ behavior: 'smooth' });
                     }
-                } catch (err) {
-                    console.error("Transmission fault", err);
-                    alert("Network error processing request payload.");
-                } finally {
-                    // 🛑 CLOSE OVERLAY LOADER
-                    if (overlay) overlay.style.display = 'none';
-                    document.getElementById('selected-file-status').style.display = 'none';
-                }
+                } catch (err) { alert("Network error processing request."); } 
+                finally { if (overlay) overlay.style.display = 'none'; document.getElementById('selected-file-status').style.display = 'none'; }
             };
             reader.readAsDataURL(selectedFilePayload);
         }
@@ -246,54 +249,34 @@
         async function publishScannedResult() {
             const description = document.getElementById('clean-description-content').innerText;
             const currentUser = localStorage.getItem('username');
-
-            if(!currentUser) {
-                alert("Redirecting: You must create an account / login before adding to the board!");
-                switchView('profile');
-                return;
-            }
+            if(!currentUser) { alert("Redirecting: Login required to post!"); switchView('profile'); return; }
 
             const res = await fetch('/api/feed/post', {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "x-user-auth": currentUser },
-                body: JSON.stringify({ imageData: currentActiveBase64, description: description })
+                body: JSON.stringify({ imageData: currentActiveBase64, description })
             });
             const data = await res.json();
-            if (data.success) {
-                renderFeed(data.feed);
-                document.getElementById('analysis-output-card').style.display = 'none';
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-            }
+            if (data.success) { renderFeed(data.feed); document.getElementById('analysis-output-card').style.display = 'none'; window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }
         }
 
         async function postComment(postId) {
             const commentInput = document.getElementById(`comment-in-${postId}`);
             const currentUser = localStorage.getItem('username');
             if(!commentInput.value.trim()) return;
-
-            if(!currentUser) {
-                alert("Redirecting: Please sign in or register to post community comments!");
-                switchView('profile');
-                return;
-            }
+            if(!currentUser) { alert("Redirecting: Login required to comment!"); switchView('profile'); return; }
 
             const res = await fetch('/api/feed/comment', {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "x-user-auth": currentUser },
-                body: JSON.stringify({ postId: postId, text: commentInput.value })
+                body: JSON.stringify({ postId, text: commentInput.value })
             });
             const data = await res.json();
-            if (data.success) {
-                renderFeed(data.feed);
-            }
+            if (data.success) renderFeed(data.feed);
         }
 
         async function fetchGlobalFeed() {
-            try {
-                const res = await fetch('/api/feed');
-                const data = await res.json();
-                if (data.feed) renderFeed(data.feed);
-            } catch(e) { console.error("Sync Failure", e); }
+            try { const res = await fetch('/api/feed'); const data = await res.json(); if (data.feed) renderFeed(data.feed); } catch(e) {}
         }
 
         function renderFeed(feedItems) {
@@ -306,48 +289,15 @@
             let personalPostsHtml = "";
 
             feedItems.forEach(item => {
-                let commentsHtml = item.comments.map(c => `
-                    <div class="comment-item">
-                        <div class="comment-user">@${c.username}</div>
-                        <div class="comment-text">${c.text}</div>
-                    </div>
-                `).join('');
-
+                let commentsHtml = item.comments.map(c => `<div class="comment-item"><div class="comment-user">@${c.username}</div><div class="comment-text">${c.text}</div></div>`).join('');
                 if (currentUser && item.username.toLowerCase() === currentUser.toLowerCase()) {
-                    personalPostsHtml += `
-                        <div class="profile-thumb">
-                            <img src="${item.image}" style="width:45px; height:45px; object-fit:cover; border-radius:6px; border:1px solid #333;">
-                            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">
-                                <strong style="font-size:13px; color:#fff;">Scanned Plant Entry</strong><br>
-                                <span style="font-size:11px; color:#666;">${item.description.substring(0, 35)}...</span>
-                            </div>
-                        </div>
-                    `;
+                    personalPostsHtml += `<div class="profile-thumb"><img src="${item.image}" style="width:45px; height:45px; object-fit:cover; border-radius:6px; border:1px solid #333;"><div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;"><strong style="font-size:13px; color:#fff;">Scanned Entry</strong><br><span style="font-size:11px; color:#666;">${item.description.substring(0, 35)}...</span></div></div>`;
                 }
 
-                globalTarget.innerHTML += `
-                    <div class="card">
-                        <div style="font-weight:bold; margin-bottom:10px; color:#aaa; font-size:13px;">Shared by: @${item.username}</div>
-                        <img src="${item.image}" style="width:100%; border-radius:8px; margin-bottom:10px; border:1px solid #1a1a1a;">
-                        <p style="font-size:14px; line-height:1.5; color:#ddd; text-align:justify; margin:0 0 15px 0;">${item.description}</p>
-                        
-                        <div style="margin-top:15px; padding-top:10px; border-top:1px solid #1a1a1a;">
-                            <h5 style="margin:0 0 8px 0; color:#555;">Comments (${item.comments.length})</h5>
-                            <div>${commentsHtml}</div>
-                            <div style="display:flex; gap:8px; margin-top:8px;">
-                                <input type="text" id="comment-in-${item.id}" placeholder="Write a public comment..." style="margin:0; padding:8px;">
-                                <button class="btn-green" onclick="postComment(${item.id})" style="width:auto; margin:0; padding:0 15px; font-size:13px;">Send</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                globalTarget.innerHTML += `<div class="card"><div style="font-weight:bold; margin-bottom:10px; color:#aaa; font-size:13px;">Shared by: @${item.username}</div><img src="${item.image}" style="width:100%; border-radius:8px; margin-bottom:10px; border:1px solid #1a1a1a;"><p style="font-size:14px; line-height:1.5; color:#ddd; text-align:justify; margin:0 0 15px 0;">${item.description}</p><div style="margin-top:15px; padding-top:10px; border-top:1px solid #1a1a1a;"><h5 style="margin:0 0 8px 0; color:#555;">Comments (${item.comments.length})</h5><div>${commentsHtml}</div><div style="display:flex; gap:8px; margin-top:8px;"><input type="text" id="comment-in-${item.id}" placeholder="Write a comment..." style="margin:0; padding:8px;"><button class="btn-green" onclick="postComment(${item.id})" style="width:auto; margin:0; padding:0 15px; font-size:13px;">Send</button></div></div></div>`;
             });
-
-            if (currentUser && personalPostsHtml !== "") {
-                personalTarget.innerHTML = personalPostsHtml;
-            } else {
-                personalTarget.innerHTML = "You haven't posted any scanned findings yet.";
-            }
+            if (currentUser && personalPostsHtml !== "") personalTarget.innerHTML = personalPostsHtml;
+            else personalTarget.innerHTML = "You haven't posted any scanned findings yet.";
         }
     </script>
 </body>
