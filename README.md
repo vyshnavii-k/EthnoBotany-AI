@@ -3,9 +3,9 @@
 A full-stack, mobile-first web application that democratizes botanical exploration using AI. Users can scan plants using their camera, get instant AI-powered identification and ethnomedicinal insights, ask botanical questions via a chatbot, and share discoveries on a public community board.
 
 🔗 **Live Demo:** [ethno-botany-ai.onrender.com](https://ethno-botany-ai.onrender.com)
+📽️ **Video Link:** [[EthnoBotany AI Demo](https://img.youtube.com/vi/je1E8A8CdjM/0.jpg)](https://youtube.com/shorts/je1E8A8CdjM)
 
 ---
-
 ## ✨ Features
 
 ### 🔬 Multimodal Botanical Scanner
